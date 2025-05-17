@@ -73,6 +73,13 @@ def loginvalidate():
             return redirect(url_for('login'))
    
 
+@app.route('/profile')
+def profile():
+    if 'username' in session:
+        return render_template('profile.html', username=session['username'])
+    else:
+        flash('Please log in to view your profile.', 'warning')
+        return redirect(url_for('login'))
 
              
 
