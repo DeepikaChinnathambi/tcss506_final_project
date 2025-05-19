@@ -1,0 +1,14 @@
+#requirements.txt for latest flask
+Flask==3.0.1
+Flask-WTF==1.2.1
+Flask-Login==0.6.3
+SQLAlchemy==2.0.27
+requests==2.31.0
+Werkzeug==3.0.1  # WSGI utility library for Python
+
+# Security packages
+Flask-Bcrypt==1.0.1    # For password hashing
+itsdangerous==2.1.2    # For securely signing data
+Flask-Talisman==1.1.0  # For security headers (HTTPS, CSP, etc.)
+email-validator==2.1.0 # For validating email addresses in forms
+PyJWT==2.8.0           # For JSON Web Tokens

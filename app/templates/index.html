@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Home - EventHub{% endblock %}
+
+{% block content %}
+    <center>
+        <h1>Welcome to EventHub</h1>
+        <h1>Upcoming Events📅</h1>
+        <h2>Find What's Happening Around You!</h2>
+        <h2>Don't miss any of your events. Stay tuned!</h2>
+        
+    </center>
+
+    <p>
+        Our local event discovery web application helps users find events near them by browsing listings, filtering by interest, date, and location, and possibly even creating their own event listings. Think of it as a local version, but specifically focused on a smaller geographic area.
+    </p>
+
+    <br>
+    <center>
+        <form>
+            <p>
+                <label for="search">Search Events: </label>
+                <input type="text" id="search" name="search" placeholder="Search events">
+
+                <label for="category">Category: </label>
+                <select id="category" name="category">
+                    <option>Music</option>
+                    <option>Art</option>
+                    <option>Food and Drink</option>
+                    <option>Holiday</option>
+                    <option>Hobbies</option>
+                </select>
+
+                <label for="location">Location: </label>
+                <input type="text" id="location" name="location" placeholder="Enter the location">
+            </p>
+        </form>
+
+        <br><br>
+        <img src="{{ url_for('static', filename='images/Untitled design.png') }}" alt="Event Banner"> <br>
+
+        <h2>Contact</h2>
+        <h3>Liam Wilkenson | Deepika Chinnathambi | Ainsley Yoshizumi</h3>
+    </center>
+{% endblock %}
