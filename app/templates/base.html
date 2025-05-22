@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Cosmo Bootstrap Site</title>
+    <title>EventHub</title>
     <!-- Bootswatch Cosmo Theme -->
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS (if needed) -->
     <style>
         body {
             padding-top: 56px;
@@ -19,69 +18,36 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('index') }}">EventHub</a>
-
-            <div class="collapse navbar-collapse justify-content-end">
-                <ul class="navbar-nav">
-                    {% if 'username' in session %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('profile') }}">
-                        <img src="{{ url_for('static', filename='images/avatar.png') }}" width="30" height="30" class="rounded-circle"> {{ session['username'] }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                    </li>
-                    {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="#">Eventhub reviews</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">EventHub</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle active" href="#" id="cityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ city if city else 'City' }}
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="cityDropdown">
-                            {% for city_option in ['Tacoma', 'Seattle' , 'Olympia'] %}
-                                <li><a class="dropdown-item" href="{{ url_for('index', city=city_option, category=category) }}">{{ city_option }}</a></li>
-                            {% endfor %}
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.about') }}">About</a>
                     </li>
-                <!-- <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle active" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ category if category else 'Category' }}
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
-                        {% for category_option in ['restaurants', 'hotels', 'attractions'] %}
-                            <li>
-                                <a class="dropdown-item" href="{{ url_for('index', city=city, category=category_option) }}">
-                                    {{ category_option }}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </li> -->
-
-                <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('about') }}">About</a>
-                </li>
-
-
+                    {% if 'username' in session %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.profile') }}">
+                            <img src="{{ url_for('static', filename='images/avatar.png') }}" width="30" height="30" class="rounded-circle"> {{ session['username'] }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.register') }}">Register</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -89,23 +55,23 @@
 
     <!-- Main Content -->
     {% block content %}
-    {% endblock %}  
+    {% endblock %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
-    {% endif %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
     {% endwith %}
 
     <!-- Footer -->
     <footer class="bg-light py-4 mt-5">
         <div class="container">
-            <p class="text-center text-muted mb-0">© 2025 Eventhub by Ainsley Yoshizumi Deepika Chinnathambi Liam WIlkenson. All rights reserved.</p>
+            <p class="text-center text-muted mb-0">© 2025 Eventhub by Ainsley Yoshizumi, Deepika Chinnathambi, Liam Wilkenson. All rights reserved.</p>
         </div>
     </footer>
 
