@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Search Events</h2>
+    
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('search_events') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="keyword" class="form-label">Keyword</label>
+                    <input type="text" class="form-control" id="keyword" name="keyword" value="{{ request.args.get('keyword', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="city" class="form-label">City</label>
+                    <input type="text" class="form-control" id="city" name="city" value="{{ request.args.get('city', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="state" class="form-label">State</label>
+                    <input type="text" class="form-control" id="state" name="state" value="{{ request.args.get('state', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Search Events</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Grid -->
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for event in events %}
+        <div class="col">
+            <div class="card h-100">
+                {% if event.image_url %}
+                <img src="{{ event.image_url }}" class="card-img-top" alt="{{ event.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.name }}</h5>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            {{ event.venue_name }}<br>
+                            {{ event.venue_city }}, {{ event.venue_state }}
+                        </small>
+                    </p>
+                    <p class="card-text">
+                        {% if event.start_date %}
+                        <strong>Date:</strong> {{ event.start_date.strftime('%B %d, %Y') }}<br>
+                        {% endif %}
+                        {% if event.price_range %}
+                        <strong>Price:</strong> {{ event.price_range }}
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('event_details', event_id=event.event_id) }}" class="btn btn-primary">View Details</a>
+                    {% if session.get('username') %}
+                    <button class="btn btn-outline-primary favorite-btn" data-event-id="{{ event.event_id }}">
+                        <i class="fas fa-heart"></i> Favorite
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if session.get('username') %}
+<script>
+document.querySelectorAll('.favorite-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        const eventId = e.target.dataset.eventId;
+        try {
+            const response = await fetch(`/events/${eventId}/favorite`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                // Toggle button appearance
+                e.target.classList.toggle('btn-outline-primary');
+                e.target.classList.toggle('btn-primary');
+            } else {
+                alert(data.error);
+            }
+        } catch (error) {
+            alert('Error updating favorites');
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %} 
