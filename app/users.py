@@ -1,23 +1,26 @@
 # users.py
-
-users_db = {}  # In-memory user store: {username: password}
+from .models import User, db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 def register_user(username, password):
-    print(f"[INFO] Attempting to register user: {username}")
-    if username in users_db:
+    # Check if username already exists
+    if User.query.filter_by(username=username).first():
         return False, "Username already exists"
-    
-    users_db[username] = password
+
+    # Hash the password
+    hashed = generate_password_hash(password)
+
+    # Create and add user to DB
+    user = User(username=username, password_hash=hashed)
+    db.session.add(user)
+    db.session.commit()
     return True, "User registered successfully"
 
 def validate_login(username, password):
-        # Validate user credentials
-    
-    print(f"[INFO] Validating login for user: {username}")
-    if username in users_db and users_db[username] == password:
+    user = User.query.filter_by(username=username).first()
+    if user and check_password_hash(user.password_hash, password):
         return True, "Login successful"
-    else:
-        return False, "Invalid username or password"
+    return False, "Invalid username or password"
 
 def get_all_users():
-    return users_db
+    return User.query.all()
