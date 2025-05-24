@@ -94,7 +94,7 @@
                 <ul class="navbar-nav">
                     {% if 'username' in session %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('profile') }}">
+                        <a class="nav-link" href="{{ url_for('main.profile') }}">
                             <img src="{{ url_for('static', filename='images/avatar.png') }}" width="30" height="30" class="rounded-circle me-1"> {{ session['username'] }}
                         </a>
                     </li>

@@ -1,9 +1,9 @@
 #All route definitions
 #!/usr/bin/env python3
-from flask import Flask, render_template,request,redirect,url_for,session,flash, jsonify
-from users import register_user,validate_login
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
+from users import register_user, validate_login
 from app.api import ticketmaster_api
-from app.models import Event, UserEvent, db
+from app.models import Event, UserEvent, User, db
 from datetime import datetime
 
 main = Blueprint('main', __name__) 
@@ -23,6 +23,7 @@ def register():
 @main.route('/logout')
 def logout():
     session.pop('username', None)
+    session.pop('user_id', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
 
@@ -39,12 +40,13 @@ def newuser():
         success, message = register_user(username, password)
         if success:
             flash(message, 'success')
-            return redirect(url_for('main.login'))  # Assume you have a login route
+            return redirect(url_for('main.login'))
         else:
             flash(message, 'danger')
             return render_template('register.html')
 
-        return render_template('register.html')    
+    return render_template('register.html')    
+
 @main.route('/loginvalidate', methods=['GET', 'POST'])
 def loginvalidate():
     if request.method == 'POST':
@@ -53,13 +55,15 @@ def loginvalidate():
 
         success, message = validate_login(username, password)
         if success:
+            # Get user_id and store in session
+            user = User.query.filter_by(username=username).first()
             session['username'] = username
+            session['user_id'] = user.id
             flash(message, 'success')
             return redirect(url_for('main.index'))
         else:
             flash(message, 'danger')
             return redirect(url_for('main.login'))
-    
 
 @main.route('/profile')
 def profile():
@@ -71,8 +75,10 @@ def profile():
     if not user:
         flash("User not found. Please register.", "danger")
         return redirect(url_for('main.register'))
+    
+    return render_template('profile.html', user=user)
 
-@app.route('/events/search')
+@main.route('/events/search')
 def search_events():
     keyword = request.args.get('keyword')
     city = request.args.get('city')
@@ -109,7 +115,7 @@ def search_events():
         flash(f'Error searching events: {str(e)}', 'error')
         return render_template('events/search.html', events=[])
 
-@app.route('/events/<event_id>')
+@main.route('/events/<event_id>')
 def event_details(event_id):
     try:
         # First try to get from database
@@ -124,9 +130,9 @@ def event_details(event_id):
         
     except Exception as e:
         flash(f'Error getting event details: {str(e)}', 'error')
-        return redirect(url_for('search_events'))
+        return redirect(url_for('main.search_events'))
 
-@app.route('/events/<event_id>/favorite', methods=['POST'])
+@main.route('/events/<event_id>/favorite', methods=['POST'])
 def toggle_favorite(event_id):
     if 'username' not in session:
         return jsonify({'error': 'Please login first'}), 401
@@ -160,11 +166,11 @@ def toggle_favorite(event_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/favorites')
+@main.route('/favorites')
 def favorite_events():
     if 'username' not in session:
         flash('Please login to view your favorite events', 'warning')
-        return redirect(url_for('login'))
+        return redirect(url_for('main.login'))
         
     try:
         user_events = UserEvent.query.filter_by(user_id=session['user_id']).all()
@@ -173,7 +179,7 @@ def favorite_events():
         
     except Exception as e:
         flash(f'Error getting favorite events: {str(e)}', 'error')
-        return redirect(url_for('index'))
+        return redirect(url_for('main.index'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

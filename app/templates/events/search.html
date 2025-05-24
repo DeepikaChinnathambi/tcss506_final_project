@@ -7,7 +7,7 @@
     <!-- Search Form -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ url_for('search_events') }}" class="row g-3">
+            <form method="GET" action="{{ url_for('main.search_events') }}" class="row g-3">
                 <div class="col-md-4">
                     <label for="keyword" class="form-label">Keyword</label>
                     <input type="text" class="form-control" id="keyword" name="keyword" value="{{ request.args.get('keyword', '') }}">
@@ -55,7 +55,7 @@
                         <strong>Price:</strong> {{ event.price_range }}
                         {% endif %}
                     </p>
-                    <a href="{{ url_for('event_details', event_id=event.event_id) }}" class="btn btn-primary">View Details</a>
+                    <a href="{{ url_for('main.event_details', event_id=event.event_id) }}" class="btn btn-primary">View Details</a>
                     {% if session.get('username') %}
                     <button class="btn btn-outline-primary favorite-btn" data-event-id="{{ event.event_id }}">
                         <i class="fas fa-heart"></i> Favorite
@@ -74,7 +74,7 @@ document.querySelectorAll('.favorite-btn').forEach(button => {
     button.addEventListener('click', async (e) => {
         const eventId = e.target.dataset.eventId;
         try {
-            const response = await fetch(`/events/${eventId}/favorite`, {
+            const response = await fetch(`{{ url_for('main.toggle_favorite', event_id='') }}${eventId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
