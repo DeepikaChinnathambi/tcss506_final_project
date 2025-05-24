@@ -11,25 +11,25 @@
 
 <!-- Search Form Section -->
 <div class="container my-4 p-4 bg-dark bg-opacity-50 rounded shadow">
-    <form class="row g-3">
+    <form method="GET" action="{{ url_for('main.search_events') }}" class="row g-3">
         <div class="col-md-4">
-            <label for="search" class="form-label text-white">Search Events</label>
-            <input type="text" class="form-control" id="search" name="search" placeholder="Music, Yoga, Food...">
+            <label for="keyword" class="form-label text-white">Search Events</label>
+            <input type="text" class="form-control" id="keyword" name="keyword" placeholder="Music, Yoga, Food...">
         </div>
-        <div class="col-md-4">
-            <label for="category" class="form-label text-white">Category</label>
-            <select id="category" name="category" class="form-select">
-                <option selected>Choose...</option>
-                <option>Music</option>
-                <option>Art</option>
-                <option>Food and Drink</option>
-                <option>Holiday</option>
-                <option>Hobbies</option>
-            </select>
+        <div class="col-md-3">
+            <label for="city" class="form-label text-white">City</label>
+            <input type="text" class="form-control" id="city" name="city" placeholder="Seattle">
         </div>
-        <div class="col-md-4">
-            <label for="location" class="form-label text-white">Location</label>
-            <input type="text" class="form-control" id="location" name="location" placeholder="Seattle, Tacoma...">
+        <div class="col-md-2">
+            <label for="state" class="form-label text-white">State</label>
+            <input type="text" class="form-control" id="state" name="state" placeholder="WA">
+        </div>
+        <div class="col-md-3">
+            <label for="start_date" class="form-label text-white">Date</label>
+            <input type="date" class="form-control" id="start_date" name="start_date">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Search Events</button>
         </div>
     </form>
 </div>

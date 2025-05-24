@@ -1,7 +1,7 @@
 #All route definitions
 #!/usr/bin/env python3
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
-from users import register_user, validate_login
+from app.users import register_user, validate_login
 from app.api import ticketmaster_api
 from app.models import Event, UserEvent, User, db
 from datetime import datetime

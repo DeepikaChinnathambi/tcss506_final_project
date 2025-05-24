@@ -98,6 +98,7 @@
                             <img src="{{ url_for('static', filename='images/avatar.png') }}" width="30" height="30" class="rounded-circle me-1"> {{ session['username'] }}
                         </a>
                     </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.favorites') }}">My Favorites</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a></li>
                     {% else %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.login') }}">Login</a></li>

@@ -9,7 +9,7 @@ class User(db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)# Store hashed password
-    created_at = db.Column(db.DateTime, default=datetime.now(datetime.UTC))
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     favorite_events = db.relationship('Event', secondary='user_event', backref='favorited_by')
 
 class Event(db.Model):
@@ -25,7 +25,7 @@ class Event(db.Model):
     image_url = db.Column(db.String(500))
     ticket_url = db.Column(db.String(500))
     price_range = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.now(datetime.UTC))
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
 class UserEvent(db.Model):
     __tablename__ = 'user_event'
@@ -33,6 +33,6 @@ class UserEvent(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     status = db.Column(db.String(20), default='interested')  # interested, going, not_interested
-    created_at = db.Column(db.DateTime, default=datetime.now(datetime.UTC))
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     #can later add models like Event, RSVP, etc., but started with User.
