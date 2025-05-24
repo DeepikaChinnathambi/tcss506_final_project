@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Favorite Events</h2>
+    
+    {% if events %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for event in events %}
+        <div class="col">
+            <div class="card h-100">
+                {% if event.image_url %}
+                <img src="{{ event.image_url }}" class="card-img-top" alt="{{ event.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.name }}</h5>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            {{ event.venue_name }}<br>
+                            {{ event.venue_city }}, {{ event.venue_state }}
+                        </small>
+                    </p>
+                    <p class="card-text">
+                        {% if event.start_date %}
+                        <strong>Date:</strong> {{ event.start_date.strftime('%B %d, %Y') }}<br>
+                        {% endif %}
+                        {% if event.price_range %}
+                        <strong>Price:</strong> {{ event.price_range }}
+                        {% endif %}
+                    </p>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('event_details', event_id=event.event_id) }}" class="btn btn-primary">View Details</a>
+                        <button class="btn btn-danger remove-favorite" data-event-id="{{ event.event_id }}">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p>You haven't added any events to your favorites yet.</p>
+        <a href="{{ url_for('search_events') }}" class="btn btn-primary">Search Events</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.remove-favorite').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        const eventId = e.target.dataset.eventId;
+        if (confirm('Are you sure you want to remove this event from your favorites?')) {
+            try {
+                const response = await fetch(`/events/${eventId}/favorite`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    // Remove the card from the DOM
+                    e.target.closest('.col').remove();
+                    
+                    // If no more events, show the empty state
+                    if (document.querySelectorAll('.col').length === 0) {
+                        location.reload();
+                    }
+                } else {
+                    alert(data.error);
+                }
+            } catch (error) {
+                alert('Error removing from favorites');
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 
