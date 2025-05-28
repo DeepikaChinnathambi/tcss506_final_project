@@ -1,12 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-4">
-    <h2>Login</h2>
+<div class="container mt-4" style="max-width: 400px;">
+    <h2 class="mb-4">Login</h2>
     
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %} 
+
     <form method="POST" action="{{ url_for('main.loginvalidate') }}">
         <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username" required>
+            <label for="Username" class="form-label">Username or Email</label>
+            <input type="text" class="form-control" id="useridentifier" name="useridentifier" placeholder="Enter username or email" required>
         </div>
         
         <div class="mb-3">
@@ -16,6 +25,11 @@
         
         <input type="submit" class="btn btn-primary" value="Login">
     </form>
+	
+	<!-- Forgot password link -->
+    <p class="mt-3 text-center">
+        <a href="{{ url_for('main.forgot_password') }}">Forgot your password?</a>
+    </p>
 </div>
 {% endblock %}
 

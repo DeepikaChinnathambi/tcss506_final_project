@@ -1,10 +1,11 @@
 #All route definitions
 #!/usr/bin/env python3
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
+from flask import render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
 from app.users import register_user, validate_login
 from app.api import ticketmaster_api
 from app.models import Event, UserEvent, User, db
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 main = Blueprint('main', __name__) 
 
@@ -23,7 +24,6 @@ def register():
 @main.route('/logout')
 def logout():
     session.pop('username', None)
-    session.pop('user_id', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
 
@@ -35,9 +35,28 @@ def about():
 def newuser():
     if request.method == 'POST':
         username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
 
-        success, message = register_user(username, password)
+        if not all([username, email, password, confirm_password]):
+            flash("All fields are required", "danger")
+            return render_template('register.html')
+
+        # Server-side password checks
+        if len(password) < 8 or not any(c.islower() for c in password) \
+        or not any(c.isupper() for c in password) or not any(c.isdigit() for c in password) \
+        or not any(c in "!@#$%^&*()-_+=<>?/.,:;{}[]" for c in password):
+            flash("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.", 'danger')
+            return redirect(url_for('main.register'))
+
+        # Confirm password match
+        if password != confirm_password:
+            flash("Passwords do not match", "danger")
+            # return render_template('register.html')
+            return redirect(url_for('main.register'))
+
+        success, message = register_user(username, email, password)
         if success:
             flash(message, 'success')
             return redirect(url_for('main.login'))
@@ -50,20 +69,68 @@ def newuser():
 @main.route('/loginvalidate', methods=['GET', 'POST'])
 def loginvalidate():
     if request.method == 'POST':
-        username = request.form.get('username')
+        identifier = request.form.get('useridentifier')# username or email
         password = request.form.get('password')
 
-        success, message = validate_login(username, password)
-        if success:
-            # Get user_id and store in session
-            user = User.query.filter_by(username=username).first()
-            session['username'] = username
+    
+        user, message = validate_login(identifier, password)
+        
+        if user:
+            session['username'] = user.username  
             session['user_id'] = user.id
             flash(message, 'success')
             return redirect(url_for('main.index'))
         else:
             flash(message, 'danger')
             return redirect(url_for('main.login'))
+
+    return render_template('login.html')
+
+@main.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            # In a real app, you would email a secure token
+            flash("Reset link sent to your email (feature simulated).", "info")
+            # For now, redirect to manual reset
+            return redirect(url_for('main.reset_password', user_id=user.id))
+        else:
+            flash("Email not found", "danger")
+            return redirect(url_for('main.forgot_password'))
+
+    return render_template('forgot_password.html')
+
+@main.route('/reset-password/<int:user_id>', methods=['GET', 'POST'])
+def reset_password(user_id):
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm = request.form.get('confirm_password')
+
+        if not all([password, confirm]):
+            flash("All fields are required", "danger")
+            return redirect(request.url)
+
+        if password != confirm:
+            flash("Passwords do not match", "danger")
+            return redirect(request.url)
+
+        if len(password) < 8 or not any(c.islower() for c in password) \
+        or not any(c.isupper() for c in password) or not any(c.isdigit() for c in password) \
+        or not any(c in "!@#$%^&*()-_+=<>?/.,:;{}[]" for c in password):
+            flash("Password must meet security rules.", 'danger')
+            return redirect(request.url)
+
+        user.password_hash = generate_password_hash(password)
+        db.session.commit()
+        flash("Password reset successful. Please log in.", "success")
+        return redirect(url_for('main.login'))
+
+    return render_template('reset_password.html', user=user)
 
 @main.route('/profile')
 def profile():
@@ -181,10 +248,9 @@ def favorite_events():
         flash(f'Error getting favorite events: {str(e)}', 'error')
         return redirect(url_for('main.index'))
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
 
-             
+
+            
 
 
 

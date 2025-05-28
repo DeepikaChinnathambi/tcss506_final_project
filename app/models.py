@@ -8,7 +8,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(256), nullable=False)# Store hashed password
+    password_hash = db.Column(db.String(256), nullable=False)# Store hashed password
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     favorite_events = db.relationship('Event', secondary='user_event', backref='favorited_by')
 
@@ -35,4 +35,4 @@ class UserEvent(db.Model):
     status = db.Column(db.String(20), default='interested')  # interested, going, not_interested
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
-    #can later add models like Event, RSVP, etc., but started with User.
+    #can later add models like RSVP, etc.,
