@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Home - EventHub{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="text-center py-5">
+    <h1 class="display-4 fw-bold">Welcome to EventHub</h1>
+    <p class="lead">Find what's happening around you – concerts, food festivals, art shows, and more!</p>
+</div>
+
+<!-- Search Form Section -->
+<div class="container my-4 p-4 bg-dark bg-opacity-50 rounded shadow">
+    <form method="GET" action="{{ url_for('main.search_events') }}" class="row g-3">
+        <div class="col-md-4">
+            <label for="keyword" class="form-label text-white">Search Events</label>
+            <input type="text" class="form-control" id="keyword" name="keyword" placeholder="Music, Yoga, Food...">
+        </div>
+        <div class="col-md-3">
+            <label for="city" class="form-label text-white">City</label>
+            <input type="text" class="form-control" id="city" name="city" placeholder="Seattle">
+        </div>
+        <div class="col-md-2">
+            <label for="state" class="form-label text-white">State</label>
+            <input type="text" class="form-control" id="state" name="state" placeholder="WA">
+        </div>
+        <div class="col-md-3">
+            <label for="start_date" class="form-label text-white">Date</label>
+            <input type="date" class="form-control" id="start_date" name="start_date">
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Search Events</button>
+        </div>
+    </form>
+</div>
+
+<!-- Description -->
+<div class="container mb-5 p-4 bg-dark bg-opacity-50 rounded shadow">
+    <h2 class="fw-semibold">What is EventHub?</h2>
+    <p>
+        EventHub is your personal window into your local scene. Find events based on your interests, from cozy book signings to bustling food truck festivals. Browse listings, filter by location and category, or even submit your own events for others to discover.
+    </p>
+</div>
+
+<!-- Event Carousel -->    
+<div class="container mt-5">
+    <div class="card bg-dark text-white shadow-lg">
+        <div class="card-header text-center">
+            <h4 class="mb-0">Scenes from around the world</h4>
+            <small class="text-muted">⛵ ~Sending good vibes from Seattle~ ⛰️</small>
+        </div>
+        <div id="seattleCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                <img src="https://live.staticflickr.com/65535/53945209775_7c07d9efb8_b.jpg" class="d-block w-100" alt="">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://live.staticflickr.com/65535/54535763142_2e067bb31a_b.jpg" class="d-block w-100" alt="">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://live.staticflickr.com/65535/54536991710_13e50dccf2_b.jpg" class="d-block w-100" alt="">
+                </div>
+                <!-- Add more images as needed -->
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#seattleCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#seattleCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+
+<!-- Contact Section -->
+<div class="container text-center text-muted py-4">
+    <h4>Contact Us</h4>
+    <p>Liam Wilkenson | Deepika Chinnathambi | Ainsley Yoshizumi </p>
+</div>
+{% endblock %}

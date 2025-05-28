@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Event Image -->
+        <div class="col-md-4">
+            {% if event.image_url %}
+            <img src="{{ event.image_url }}" class="img-fluid rounded" alt="{{ event.name }}">
+            {% endif %}
+        </div>
+        
+        <!-- Event Details -->
+        <div class="col-md-8">
+            <h1>{{ event.name }}</h1>
+            
+            <div class="mb-4">
+                <h5 class="text-muted">
+                    {{ event.venue_name }}<br>
+                    {{ event.venue_city }}, {{ event.venue_state }}
+                </h5>
+            </div>
+            
+            <div class="mb-4">
+                {% if event.start_date %}
+                <p><strong>Date:</strong> {{ event.start_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                {% endif %}
+                
+                {% if event.price_range %}
+                <p><strong>Price Range:</strong> {{ event.price_range }}</p>
+                {% endif %}
+            </div>
+            
+            {% if event.description %}
+            <div class="mb-4">
+                <h4>Description</h4>
+                <p>{{ event.description }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="mb-4">
+                {% if session.get('username') %}
+                <button class="btn btn-outline-primary favorite-btn me-2" data-event-id="{{ event.event_id }}">
+                    <i class="fas fa-heart"></i> Add to Favorites
+                </button>
+                {% endif %}
+                
+                {% if event.ticket_url %}
+                <a href="{{ event.ticket_url }}" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-ticket-alt"></i> Get Tickets
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if session.get('username') %}
+<script>
+document.querySelector('.favorite-btn').addEventListener('click', async (e) => {
+    const eventId = e.target.dataset.eventId;
+    try {
+        const response = await fetch(`/events/${eventId}/favorite`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (response.ok) {
+            alert(data.message);
+            // Toggle button appearance
+            e.target.classList.toggle('btn-outline-primary');
+            e.target.classList.toggle('btn-primary');
+        } else {
+            alert(data.error);
+        }
+    } catch (error) {
+        alert('Error updating favorites');
+    }
+});
+</script>
+{% endif %}
+{% endblock %} 
