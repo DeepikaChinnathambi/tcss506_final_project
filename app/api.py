@@ -7,12 +7,13 @@ from flask import current_app
 from app.models import Event, db
 
 class TicketmasterAPI:
-    BASE_URL = "https://app.ticketmaster.com/discovery/v2"
-    
     def __init__(self):
         self.api_key = os.getenv('TICKETMASTER_API_KEY')
         if not self.api_key:
-            raise ValueError("Ticketmaster API key not found in environment variables")
+            self.api_key = os.environ.get('TICKETMASTER_API_KEY')
+        if not self.api_key:
+            raise ValueError("Please set your TICKETMASTER_API_KEY environment variable")
+        self.base_url = 'https://app.ticketmaster.com/discovery/v2'
 
     def search_events(self, keyword=None, city=None, state=None, start_date=None, end_date=None, page=0, size=20):
         """
@@ -36,7 +37,7 @@ class TicketmasterAPI:
         if end_date:
             params['endDateTime'] = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        response = requests.get(f"{self.BASE_URL}/events", params=params)
+        response = requests.get(f"{self.base_url}/events", params=params)
         response.raise_for_status()
         return response.json()
 
@@ -45,7 +46,7 @@ class TicketmasterAPI:
         Get detailed information about a specific event
         """
         params = {'apikey': self.api_key}
-        response = requests.get(f"{self.BASE_URL}/events/{event_id}", params=params)
+        response = requests.get(f"{self.base_url}/events/{event_id}", params=params)
         response.raise_for_status()
         return response.json()
 

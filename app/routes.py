@@ -6,8 +6,17 @@ from app.api import ticketmaster_api
 from app.models import Event, UserEvent, User, db
 from datetime import datetime
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
+import os
 
 main = Blueprint('main', __name__) 
+
+# Configure upload settings
+UPLOAD_FOLDER = os.path.join('app', 'static', 'images', 'avatars')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @main.route('/')
 def index():
@@ -78,6 +87,7 @@ def loginvalidate():
         if user:
             session['username'] = user.username  
             session['user_id'] = user.id
+            session['avatar_url'] = user.avatar_url
             flash(message, 'success')
             return redirect(url_for('main.index'))
         else:
@@ -144,6 +154,49 @@ def profile():
         return redirect(url_for('main.register'))
     
     return render_template('profile.html', user=user)
+
+@main.route('/update_avatar', methods=['POST'])
+def update_avatar():
+    if 'username' not in session:
+        flash('Please login first', 'warning')
+        return redirect(url_for('main.login'))
+
+    if 'avatar' not in request.files:
+        flash('No file uploaded', 'warning')
+        return redirect(url_for('main.profile'))
+
+    file = request.files['avatar']
+    
+    if file.filename == '':
+        flash('No file selected', 'warning')
+        return redirect(url_for('main.profile'))
+
+    if file and allowed_file(file.filename):
+        # Create upload folder if it doesn't exist
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        
+        # Secure the filename and make it unique
+        filename = secure_filename(file.filename)
+        username = session['username']
+        unique_filename = f"{username}_{filename}"
+        
+        # Save the file
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        file.save(file_path)
+        
+        # Update user's avatar_url in database
+        user = User.query.filter_by(username=username).first()
+        user.avatar_url = f"images/avatars/{unique_filename}"
+        db.session.commit()
+        
+        # Update session with new avatar_url
+        session['avatar_url'] = user.avatar_url
+        
+        flash('Avatar updated successfully!', 'success')
+    else:
+        flash('Invalid file type. Please use PNG, JPG, JPEG, or GIF.', 'danger')
+    
+    return redirect(url_for('main.profile'))
 
 @main.route('/events/search')
 def search_events():

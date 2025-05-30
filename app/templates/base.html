@@ -95,7 +95,11 @@
                     {% if session.get('username') %}                    
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.profile') }}">
-                            <img src="{{ url_for('static', filename='images/avatar.png') }}" width="30" height="30" class="rounded-circle me-1"> 
+                            <img src="{{ url_for('static', filename=session.get('avatar_url', 'images/default_avatar.png')) }}" 
+                                 width="30" height="30" 
+                                 class="rounded-circle me-1" 
+                                 style="object-fit: cover;"
+                                 alt="{{ session['username'] }}'s avatar"> 
                             {{ session['username'] }}
                         </a>
                     </li>
