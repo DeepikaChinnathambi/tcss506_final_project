@@ -1,10 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-4 text-center">
-    <h2>Welcome, {{ username }}!</h2>
-    <p>This is your profile page.</p>
-    <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>Registered on:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
-
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4 text-center">
+            <div class="avatar-container mb-4">
+                <img src="{{ url_for('static', filename=user.avatar_url) }}" 
+                     class="rounded-circle img-fluid mb-3" 
+                     style="width: 200px; height: 200px; object-fit: cover;"
+                     alt="{{ user.username }}'s avatar">
+                
+                <!-- <form action="{{ url_for('main.update_avatar') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Change Avatar</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Avatar</button>
+                </form> -->
+                <form action="{{ url_for('main.update_avatar') }}" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="avatar">
+                    <button type="submit">Upload</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <h2>Welcome, {{ user.username }}!</h2>
+            <div class="card bg-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Profile Information</h5>
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Member since:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -24,6 +24,17 @@
    
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
+            <div id="passwordHelp" class="form-text mb-2">
+                Password must include:
+                <ul class="mb-0">
+                    <li id="length" class="text-danger">At least 8 characters</li>
+                    <li id="lower" class="text-danger">One lowercase letter</li>
+                    <li id="upper" class="text-danger">One uppercase letter</li>
+                    <li id="number" class="text-danger">One number</li>
+                    <li id="special" class="text-danger">One special character (!@#$%^&*...)</li>
+                </ul>
+            </div>
+
             <input type="password" class="form-control" id="password" name="password" required>
         </div>
         
@@ -35,4 +46,40 @@
         <input type="submit" class="btn btn-primary" value="Register">
     </form>
 </div>
+
+<script>
+document.getElementById("password").addEventListener("input", function() {
+    const pwd = this.value;
+
+    // Validation checks
+    const length = pwd.length >= 8;
+    const lower = /[a-z]/.test(pwd);
+    const upper = /[A-Z]/.test(pwd);
+    const number = /[0-9]/.test(pwd);
+    const special = /[!@#$%^&*()\-\_\+=<>?/.,:;{}\[\]]/.test(pwd);
+
+    // Update styles
+    document.getElementById("length").className = length ? "text-success" : "text-danger";
+    document.getElementById("lower").className = lower ? "text-success" : "text-danger";
+    document.getElementById("upper").className = upper ? "text-success" : "text-danger";
+    document.getElementById("number").className = number ? "text-success" : "text-danger";
+    document.getElementById("special").className = special ? "text-success" : "text-danger";
+});
+
+document.getElementById("confirm_password").addEventListener("input", function() {
+    const pwd = document.getElementById("password").value;
+    const confirmPwd = this.value;
+    const msg = document.getElementById("matchMessage");
+
+    if (confirmPwd === "") {
+        msg.textContent = "";
+    } else if (pwd === confirmPwd) {
+        msg.textContent = "Passwords match";
+        msg.className = "form-text text-success";
+    } else {
+        msg.textContent = "Passwords do not match";
+        msg.className = "form-text text-danger";
+    }
+});
+</script>
 {% endblock %}

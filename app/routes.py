@@ -1,14 +1,22 @@
 #All route definitions
 #!/usr/bin/env python3
+import os
 from flask import render_template, request, redirect, url_for, session, flash, jsonify, Blueprint,current_app
 from app.users import register_user, validate_login,send_reset_email
 from app.api import ticketmaster_api
 from app.models import Event, UserEvent, User, db
 from datetime import datetime
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 from itsdangerous import SignatureExpired, BadSignature,URLSafeTimedSerializer
 
 main = Blueprint('main', __name__) 
+# Configure upload settings
+UPLOAD_FOLDER = os.path.join('app', 'static', 'images', 'avatars')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @main.route('/')
 def index():
@@ -79,6 +87,7 @@ def loginvalidate():
         if user:
             session['username'] = user.username  
             session['user_id'] = user.id
+            session['avatar_url'] = user.avatar_url
             flash(message, 'success')
             return redirect(url_for('main.index'))
         else:
@@ -183,13 +192,61 @@ def profile():
     
     return render_template('profile.html', user=user)
 
+@main.route('/update_avatar', methods=['POST'])
+def update_avatar():
+    if 'username' not in session:
+        flash('Please login first', 'warning')
+        return redirect(url_for('main.login'))
+
+    print("==== DEBUGGING FILE UPLOAD ====")
+    print("Request method:", request.method)
+    print("Request content_type:", request.content_type)
+    print("request.files:", request.files)
+    print("request.form:", request.form)
+    
+    if 'avatar' not in request.files:
+        flash('No file uploaded', 'warning')
+        return redirect(url_for('main.profile'))
+
+    file = request.files['avatar']
+    
+    if file.filename == '':
+        flash('No file selected', 'warning')
+        return redirect(url_for('main.profile'))
+
+    if file and allowed_file(file.filename):
+        # Create upload folder if it doesn't exist
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        
+        # Secure the filename and make it unique
+        filename = secure_filename(file.filename)
+        username = session['username']
+        unique_filename = f"{username}_{filename}"
+        
+        # Save the file
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        file.save(file_path)
+        
+        # Update user's avatar_url in database
+        user = User.query.filter_by(username=username).first()
+        user.avatar_url = f"images/avatars/{unique_filename}"
+        db.session.commit()
+        
+        # Update session with new avatar_url
+        session['avatar_url'] = user.avatar_url
+        
+        flash('Avatar updated successfully!', 'success')
+    else:
+        flash('Invalid file type. Please use PNG, JPG, JPEG, or GIF.', 'danger')
+    
+    return redirect(url_for('main.profile'))
 
 @main.route('/events/search')
 def search_events():
     keyword = request.args.get('keyword')
     city = request.args.get('city')
     state = request.args.get('state')
-
+    
     try:
         # Convert string dates to datetime if provided
         start_date = None
@@ -198,7 +255,7 @@ def search_events():
             start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
         if request.args.get('end_date'):
             end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
-
+            
         # Get events from Ticketmaster API
         events_data = ticketmaster_api.search_events(
             keyword=keyword,
@@ -207,54 +264,52 @@ def search_events():
             start_date=start_date,
             end_date=end_date
         )
-
+        
         # Process and save events to database
         events = []
         if '_embedded' in events_data and 'events' in events_data['_embedded']:
             for event_data in events_data['_embedded']['events']:
                 event = ticketmaster_api.save_event_to_db(event_data)
                 events.append(event)
-
+        
         return render_template('events/search.html', events=events)
-
+        
     except Exception as e:
         flash(f'Error searching events: {str(e)}', 'error')
         return render_template('events/search.html', events=[])
-
 
 @main.route('/events/<event_id>')
 def event_details(event_id):
     try:
         # First try to get from database
         event = Event.query.filter_by(event_id=event_id).first()
-
+        
         # If not in database, fetch from API and save
         if not event:
             event_data = ticketmaster_api.get_event_details(event_id)
             event = ticketmaster_api.save_event_to_db(event_data)
-
+        
         return render_template('events/details.html', event=event)
-
+        
     except Exception as e:
         flash(f'Error getting event details: {str(e)}', 'error')
         return redirect(url_for('main.search_events'))
-
 
 @main.route('/events/<event_id>/favorite', methods=['POST'])
 def toggle_favorite(event_id):
     if 'username' not in session:
         return jsonify({'error': 'Please login first'}), 401
-
+        
     try:
         event = Event.query.filter_by(event_id=event_id).first()
         if not event:
             return jsonify({'error': 'Event not found'}), 404
-
+            
         user_event = UserEvent.query.filter_by(
             user_id=session['user_id'],
             event_id=event.id
         ).first()
-
+        
         if user_event:
             db.session.delete(user_event)
             message = 'Event removed from favorites'
@@ -266,26 +321,25 @@ def toggle_favorite(event_id):
             )
             db.session.add(user_event)
             message = 'Event added to favorites'
-
+            
         db.session.commit()
         return jsonify({'message': message})
-
+        
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-
 
 @main.route('/favorites')
 def favorite_events():
     if 'username' not in session:
         flash('Please login to view your favorite events', 'warning')
         return redirect(url_for('main.login'))
-
+        
     try:
         user_events = UserEvent.query.filter_by(user_id=session['user_id']).all()
         events = [ue.event for ue in user_events]
         return render_template('events/favorites.html', events=events)
-
+        
     except Exception as e:
         flash(f'Error getting favorite events: {str(e)}', 'error')
         return redirect(url_for('main.index'))
