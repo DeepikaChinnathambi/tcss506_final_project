@@ -9,6 +9,7 @@ class User(db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)# Store hashed password
+    avatar_url = db.Column(db.String(500), default='images/default_avatar.png')  # Default avatar path
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     favorite_events = db.relationship('Event', secondary='user_event', backref='favorited_by')
 
