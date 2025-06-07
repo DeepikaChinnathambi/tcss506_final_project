@@ -72,9 +72,12 @@
 <script>
 document.querySelectorAll('.favorite-btn').forEach(button => {
     button.addEventListener('click', async (e) => {
-        const eventId = e.target.dataset.eventId;
+        e.preventDefault();
+        const button = e.target.closest('.favorite-btn');
+        if (!button) return;
+        const eventId = button.dataset.eventId;
         try {
-            const response = await fetch(`{{ url_for('main.toggle_favorite', event_id='') }}${eventId}`, {
+            const response = await fetch(`/events/${eventId}/favorite`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -84,12 +87,13 @@ document.querySelectorAll('.favorite-btn').forEach(button => {
             if (response.ok) {
                 alert(data.message);
                 // Toggle button appearance
-                e.target.classList.toggle('btn-outline-primary');
-                e.target.classList.toggle('btn-primary');
+                button.classList.toggle('btn-outline-primary');
+                button.classList.toggle('btn-primary');
             } else {
                 alert(data.error);
             }
         } catch (error) {
+            console.error('Error:', error);
             alert('Error updating favorites');
         }
     });

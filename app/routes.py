@@ -198,12 +198,6 @@ def update_avatar():
         flash('Please login first', 'warning')
         return redirect(url_for('main.login'))
 
-    print("==== DEBUGGING FILE UPLOAD ====")
-    print("Request method:", request.method)
-    print("Request content_type:", request.content_type)
-    print("request.files:", request.files)
-    print("request.form:", request.form)
-    
     if 'avatar' not in request.files:
         flash('No file uploaded', 'warning')
         return redirect(url_for('main.profile'))
@@ -299,35 +293,59 @@ def event_details(event_id):
 def toggle_favorite(event_id):
     if 'username' not in session:
         return jsonify({'error': 'Please login first'}), 401
-        
+
+    if 'user_id' not in session:
+        return jsonify({'error': 'Session error. Please login again.'}), 401
+
     try:
+        # First verify the user existsAdd commentMore actions
+        user = User.query.get(session['user_id'])
+        if not user:
+            return jsonify({'error': 'User not found. Please login again.'}), 401
+
+        # Debug logging
+        current_app.logger.info(f"Toggle favorite for user {user.username} (ID: {user.id}) and event {event_id}")
+
+        # Find the event
         event = Event.query.filter_by(event_id=event_id).first()
         if not event:
+            current_app.logger.error(f"Event not found with ID: {event_id}")
             return jsonify({'error': 'Event not found'}), 404
-            
+
+        current_app.logger.info(f"Found event: {event.name} (ID: {event.id})")
+
+        # Check for existing favorite
         user_event = UserEvent.query.filter_by(
-            user_id=session['user_id'],
+            user_id=user.id,
             event_id=event.id
         ).first()
-        
-        if user_event:
-            db.session.delete(user_event)
-            message = 'Event removed from favorites'
-        else:
-            user_event = UserEvent(
-                user_id=session['user_id'],
-                event_id=event.id,
-                status='interested'
-            )
-            db.session.add(user_event)
-            message = 'Event added to favorites'
+
+        try:
+            if user_event:
+                current_app.logger.info(f"Removing favorite (UserEvent ID: {user_event.id})")
+                db.session.delete(user_event)
+                message = 'Event removed from favorites'
+            else:
+                current_app.logger.info(f"Adding new favorite for event ID: {event.id}")
+                user_event = UserEvent(
+                    user_id=user.id,
+                    event_id=event.id,
+                    status='interested'
+                )
+                db.session.add(user_event)
+                message = 'Event added to favorites'
+
+            db.session.commit()
+            current_app.logger.info("Successfully committed database changes")
+            return jsonify({'message': message, 'status': 'success'})
             
-        db.session.commit()
-        return jsonify({'message': message})
-        
+        except Exception as db_error:
+            db.session.rollback()
+            current_app.logger.error(f"Database error in toggle_favorite: {str(db_error)}")
+            return jsonify({'error': 'Error updating favorites'}), 500
     except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.error(f"Error in toggle_favorite: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
 
 @main.route('/favorites')
 def favorite_events():
@@ -335,13 +353,45 @@ def favorite_events():
         flash('Please login to view your favorite events', 'warning')
         return redirect(url_for('main.login'))
         
+    if 'user_id' not in session:
+        flash('Session error. Please try logging in again.', 'error')
+        return redirect(url_for('main.login'))
+        
     try:
+        # First verify the user exists
+        user = User.query.get(session['user_id'])
+        if not user:
+            flash('User not found. Please login again.', 'error')
+            return redirect(url_for('main.login'))
+            
+        # Debug logging
+        current_app.logger.info(f"Fetching favorites for user {user.username} (ID: {user.id})")
+        
+        # Get user's favorite events
         user_events = UserEvent.query.filter_by(user_id=session['user_id']).all()
-        events = [ue.event for ue in user_events]
+        current_app.logger.info(f"Found {len(user_events)} favorite events in UserEvent table")
+        
+        events = []
+        for ue in user_events:
+            try:
+                if ue.event:  # Check if the event exists
+                    events.append(ue.event)
+                    current_app.logger.info(f"Added event to list: {ue.event.name} (ID: {ue.event.event_id})")
+                else:
+                    current_app.logger.warning(f"Found orphaned UserEvent record (ID: {ue.id})")
+                    # Clean up orphaned user_event entries
+                    db.session.delete(ue)
+            except Exception as event_error:
+                current_app.logger.error(f"Error processing event: {str(event_error)}")
+                continue
+                
+        db.session.commit()
+        current_app.logger.info(f"Returning {len(events)} events to template")
         return render_template('events/favorites.html', events=events)
         
     except Exception as e:
-        flash(f'Error getting favorite events: {str(e)}', 'error')
+        current_app.logger.error(f"Error in favorite_events: {str(e)}")
+        flash(f'Error getting favorite events. Please try again.', 'error')
         return redirect(url_for('main.index'))
 
 
