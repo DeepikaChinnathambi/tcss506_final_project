@@ -266,11 +266,20 @@ def search_events():
                 event = ticketmaster_api.save_event_to_db(event_data)
                 events.append(event)
         
-        return render_template('events/search.html', events=events)
+        try:
+            user = User.query.filter_by(username=session.get('username')).first()
+            favorites = [event.event_id for event in user.favorites if event is not None]
+            rsvp = [event.event_id for event in user.rsvps if event is not None]
+        except Exception as e:
+            favorites = []
+            rsvp = []
+            
+
+        return render_template('events/search.html', events=events, favorites=favorites, rsvp=rsvp)
         
     except Exception as e:
         flash(f'Error searching events: {str(e)}', 'error')
-        return render_template('events/search.html', events=[])
+        return render_template('events/search.html', events=[], favorites=favorites, rsvp=rsvp)
 
 @main.route('/events/<event_id>')
 def event_details(event_id):
@@ -312,32 +321,35 @@ def toggle_favorite(event_id):
             current_app.logger.error(f"Event not found with ID: {event_id}")
             return jsonify({'error': 'Event not found'}), 404
 
-        current_app.logger.info(f"Found event: {event.name} (ID: {event.id})")
+        current_app.logger.info(f"Found event: {event.name} (ID: {event.event_id})")
 
         # Check for existing favorite
         user_event = UserEvent.query.filter_by(
-            user_id=user.id,
-            event_id=event.id
+            user_id=session['user_id'],
+            event_id=event.event_id
         ).first()
 
         try:
             if user_event:
-                current_app.logger.info(f"Removing favorite (UserEvent ID: {user_event.id})")
+                current_app.logger.info(f"Removing favorite (UserEvent ID: {user_event.event_id})")
                 db.session.delete(user_event)
+                fave = False
                 message = 'Event removed from favorites'
             else:
-                current_app.logger.info(f"Adding new favorite for event ID: {event.id}")
+                current_app.logger.info(f"Adding new favorite for event ID: {event.event_id}")
                 user_event = UserEvent(
-                    user_id=user.id,
-                    event_id=event.id,
-                    status='interested'
+                    user_id=session['user_id'],
+                    event_id=event.event_id,
+                    is_favorite=True,  # Set as favorite
+                    rsvp_status='interested'
                 )
+                fave = True
                 db.session.add(user_event)
                 message = 'Event added to favorites'
 
             db.session.commit()
             current_app.logger.info("Successfully committed database changes")
-            return jsonify({'message': message, 'status': 'success'})
+            return jsonify({'message': message, 'status': 'success', 'favorited': fave})
             
         except Exception as db_error:
             db.session.rollback()
@@ -369,6 +381,8 @@ def favorite_events():
         
         # Get user's favorite events
         user_events = UserEvent.query.filter_by(user_id=session['user_id']).all()
+        events = Event.query.filter(Event.event_id.in_([ue.event_id for ue in user_events])).all()
+        # events = [ue for ue in user_events]
         current_app.logger.info(f"Found {len(user_events)} favorite events in UserEvent table")
         
         events = []
@@ -394,6 +408,73 @@ def favorite_events():
         flash(f'Error getting favorite events. Please try again.', 'error')
         return redirect(url_for('main.index'))
 
+
+@main.route('/events/<event_id>/rsvp', methods=['POST'])
+def toggle_rsvp(event_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Please login first'}), 401
+
+    try:
+        user_id = session['user_id']
+
+        # Get user and event
+        user = User.query.get(user_id)
+        event = Event.query.filter_by(event_id=event_id).first()
+
+        if not user or not event:
+            return jsonify({'error': 'User or Event not found'}), 404
+
+        # Check or create the UserEvent relationship
+        user_event = UserEvent.query.filter_by(user_id=user.id, event_id=event.event_id).first()
+
+        if user_event:
+            # Toggle RSVP
+            if user_event.rsvp_status == 'going':
+                user_event.rsvp_status = 'interested'
+                message = 'Marked as interested'
+            else:
+                user_event.rsvp_status = 'going'
+                message = 'RSVP marked as going'
+                if not user_event.is_favorite: # If not already a favorite, mark as going
+                    user_event.is_favorite = True
+                    db.session.add(user_event) 
+                
+        else:
+            # Create new link with RSVP
+            user_event = UserEvent(user_id=user.id, event_id=event.event_id, is_favorite=True, rsvp_status='going')
+            db.session.add(user_event)
+            message = 'RSVP marked as going'
+        db.session.commit()
+        return jsonify({'message': message, 'status': 'success', 'rsvp_status': user_event.rsvp_status=='going',})
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'RSVP Toggle Error: {e}')
+        return jsonify({'error': 'An unexpected error occurred'}), 500
+
+
+@main.route('/rsvp')
+def rsvp_events():
+    if 'user_id' not in session:
+        flash('Please login to view your RSVP events', 'warning')
+        return redirect(url_for('main.login'))
+
+    try:
+        user = User.query.get(session['user_id'])
+        if not user:
+            flash('User not found.', 'danger')
+            return redirect(url_for('main.login'))
+
+        # Get RSVP'd events
+        rsvp_links = UserEvent.query.filter_by(user_id=user.id, rsvp_status='going').all()
+        events = [link.event for link in rsvp_links if link.event]
+
+        return render_template('events/rsvp.html', events=events)
+
+    except Exception as e:
+        current_app.logger.error(f"Error in rsvp_events: {str(e)}")
+        flash('Error retrieving RSVP events.', 'danger')
+        return redirect(url_for('main.index'))
 
 
             

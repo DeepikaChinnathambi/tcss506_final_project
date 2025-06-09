@@ -57,8 +57,19 @@
                     </p>
                     <a href="{{ url_for('main.event_details', event_id=event.event_id) }}" class="btn btn-primary">View Details</a>
                     {% if session.get('username') %}
-                    <button class="btn btn-outline-primary favorite-btn" data-event-id="{{ event.event_id }}">
-                        <i class="fas fa-heart"></i> Favorite
+                    <button class="btn rsvp-btn {{ 'btn-primary' if event.event_id in rsvp else 'btn-outline-primary' }}" data-event-id="{{ event.event_id }}">
+                        {% if event.event_id in rsvp %}
+                            <i class="fas fa-check-square"></i> I'm going!
+                        {% else %}
+                            <i class="far fa-square"></i> RSVP
+                        {% endif %}
+                    </button>
+                    <button class="btn favorite-btn {{ 'btn-primary' if event.event_id in favorites else 'btn-outline-primary' }}" data-event-id="{{ event.event_id }}">
+                        {% if event.event_id in favorites %}
+                            <i class="fas fa-heart"></i> Favorited
+                        {% else %}
+                            <i class="far fa-heart"></i> Favorite
+                        {% endif %}
                     </button>
                     {% endif %}
                 </div>
@@ -69,35 +80,7 @@
 </div>
 
 {% if session.get('username') %}
-<script>
-document.querySelectorAll('.favorite-btn').forEach(button => {
-    button.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const button = e.target.closest('.favorite-btn');
-        if (!button) return;
-        const eventId = button.dataset.eventId;
-        try {
-            const response = await fetch(`/events/${eventId}/favorite`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            if (response.ok) {
-                alert(data.message);
-                // Toggle button appearance
-                button.classList.toggle('btn-outline-primary');
-                button.classList.toggle('btn-primary');
-            } else {
-                alert(data.error);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error updating favorites');
-        }
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rsvp.js') }}"></script>
 {% endif %}
-{% endblock %} 
+{% endblock %}

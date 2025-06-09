@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My RSVPs</h2>
+
+    {% if events %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for event in events %}
+        <div class="col">
+            <div class="card shadow-sm h-100">
+                {% if event.image_url %}
+                <img src="{{ event.image_url }}" class="card-img-top" alt="{{ event.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <h4 class="card-title">{{ event.name }}</h4>
+                    <p class="card-text">
+                        <strong>Venue:</strong> {{ event.venue_name }}<br>
+                        <strong>Location:</strong> {{ event.venue_city }}, {{ event.venue_state }}<br>
+                        {% if event.start_date %}
+                        <strong>Date:</strong> {{ event.start_date.strftime('%B %d, %Y') }}<br>
+                        {% endif %}
+                        {% if event.price_range %}
+                        <strong>Price:</strong> {{ event.price_range }}
+                        {% endif %}
+                    </p>
+
+                    <hr>
+                    <p><strong>Other attendees:</strong></p>
+                    {% if event.rsvp_users %}
+                        <ul class="list-unstyled ms-3">
+                            {% for user in event.rsvp_users %}
+                            <li>👤 {{ user.username }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">You're the first to RSVP!</p>
+                    {% endif %}
+
+                    <div class="mt-3 d-flex justify-content-between">
+                        <a href="{{ url_for('main.event_details', event_id=event.event_id) }}" class="btn btn-primary">View Event</a>
+                        <button class="btn btn-outline-danger un-rsvp-btn" data-event-id="{{ event.event_id }}">
+                            <i class="fas fa-check-square text-success"></i> I'm going!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-4">
+        <p>You haven't RSVP'd to any events yet.</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Browse Events</a>
+    </div>
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rsvp.js') }}"></script>
+{% endblock %}

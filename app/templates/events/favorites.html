@@ -42,40 +42,11 @@
     {% else %}
     <div class="alert alert-info">
         <p>You haven't added any events to your favorites yet.</p>
-        <a href="{{ url_for('main.search_events') }}" class="btn btn-primary">Search Events</a>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Start Searching for Events!</a>
     </div>
     {% endif %}
 </div>
 
-<script>
-document.querySelectorAll('.remove-favorite').forEach(button => {
-    button.addEventListener('click', async (e) => {
-        const eventId = e.target.dataset.eventId;
-        if (confirm('Are you sure you want to remove this event from your favorites?')) {
-            try {
-                const response = await fetch(`/events/${eventId}/favorite`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    // Remove the card from the DOM
-                    e.target.closest('.col').remove();
-                    
-                    // If no more events, show the empty state
-                    if (document.querySelectorAll('.col').length === 0) {
-                        location.reload();
-                    }
-                } else {
-                    alert(data.error);
-                }
-            } catch (error) {
-                alert('Error removing from favorites');
-            }
-        }
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rsvp.js') }}"></script>
 {% endblock %} 
