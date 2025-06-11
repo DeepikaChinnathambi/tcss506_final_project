@@ -269,17 +269,17 @@ def search_events():
         try:
             user = User.query.filter_by(username=session.get('username')).first()
             favorites = [event.event_id for event in user.favorites if event is not None]
-            rsvp = [event.event_id for event in user.rsvps if event is not None]
+            rsvps = [event.event_id for event in user.rsvps if event is not None]
         except Exception as e:
             favorites = []
-            rsvp = []
+            rsvps = []
             
 
-        return render_template('events/search.html', events=events, favorites=favorites, rsvp=rsvp)
+        return render_template('events/search.html', events=events, favorites=favorites, rsvps=rsvps)
         
     except Exception as e:
         flash(f'Error searching events: {str(e)}', 'error')
-        return render_template('events/search.html', events=[], favorites=favorites, rsvp=rsvp)
+        return render_template('events/search.html', events=[])
 
 @main.route('/events/<event_id>')
 def event_details(event_id):
@@ -292,7 +292,15 @@ def event_details(event_id):
             event_data = ticketmaster_api.get_event_details(event_id)
             event = ticketmaster_api.save_event_to_db(event_data)
         
-        return render_template('events/details.html', event=event)
+        try:
+            user = User.query.filter_by(username=session.get('username')).first()
+            favorites = [event.event_id for event in user.favorites if event is not None]
+            rsvps = [event.event_id for event in user.rsvps if event is not None]
+        except Exception as e:
+            favorites = []
+            rsvps = []
+
+        return render_template('events/details.html', event=event, favorites=favorites, rsvps=rsvps)
         
     except Exception as e:
         flash(f'Error getting event details: {str(e)}', 'error')
@@ -316,7 +324,7 @@ def toggle_favorite(event_id):
         current_app.logger.info(f"Toggle favorite for user {user.username} (ID: {user.id}) and event {event_id}")
 
         # Find the event
-        event = Event.query.filter_by(event_id=event_id).first()
+        event = Event.query.filter_by(id=event_id).first()
         if not event:
             current_app.logger.error(f"Event not found with ID: {event_id}")
             return jsonify({'error': 'Event not found'}), 404
@@ -326,7 +334,7 @@ def toggle_favorite(event_id):
         # Check for existing favorite
         user_event = UserEvent.query.filter_by(
             user_id=session['user_id'],
-            event_id=event.event_id
+            event_id=event.id
         ).first()
 
         try:
@@ -339,7 +347,7 @@ def toggle_favorite(event_id):
                 current_app.logger.info(f"Adding new favorite for event ID: {event.event_id}")
                 user_event = UserEvent(
                     user_id=session['user_id'],
-                    event_id=event.event_id,
+                    event_id=event.id,
                     is_favorite=True,  # Set as favorite
                     rsvp_status='interested'
                 )
@@ -381,7 +389,7 @@ def favorite_events():
         
         # Get user's favorite events
         user_events = UserEvent.query.filter_by(user_id=session['user_id']).all()
-        events = Event.query.filter(Event.event_id.in_([ue.event_id for ue in user_events])).all()
+        events = Event.query.filter(Event.event_id.in_([ue.id for ue in user_events])).all()
         # events = [ue for ue in user_events]
         current_app.logger.info(f"Found {len(user_events)} favorite events in UserEvent table")
         
@@ -398,10 +406,14 @@ def favorite_events():
             except Exception as event_error:
                 current_app.logger.error(f"Error processing event: {str(event_error)}")
                 continue
-                
+        
+        # 100% could clean all of this up and have 1 variable passed that checks all the things but just running into the 11th hour here. 
+        favorites = get_favorites(session['user_id'])
+        rsvps = get_rsvps(session['user_id'])
+
         db.session.commit()
         current_app.logger.info(f"Returning {len(events)} events to template")
-        return render_template('events/favorites.html', events=events)
+        return render_template('events/favorites.html', events=events, favorites=favorites, rsvps=rsvps)
         
     except Exception as e:
         current_app.logger.error(f"Error in favorite_events: {str(e)}")
@@ -419,13 +431,13 @@ def toggle_rsvp(event_id):
 
         # Get user and event
         user = User.query.get(user_id)
-        event = Event.query.filter_by(event_id=event_id).first()
+        event = Event.query.filter_by(id=event_id).first()
 
         if not user or not event:
             return jsonify({'error': 'User or Event not found'}), 404
 
         # Check or create the UserEvent relationship
-        user_event = UserEvent.query.filter_by(user_id=user.id, event_id=event.event_id).first()
+        user_event = UserEvent.query.filter_by(user_id=user.id, event_id=event.id).first()
 
         if user_event:
             # Toggle RSVP
@@ -441,7 +453,7 @@ def toggle_rsvp(event_id):
                 
         else:
             # Create new link with RSVP
-            user_event = UserEvent(user_id=user.id, event_id=event.event_id, is_favorite=True, rsvp_status='going')
+            user_event = UserEvent(user_id=user.id, event_id=event.id, is_favorite=True, rsvp_status='going')
             db.session.add(user_event)
             message = 'RSVP marked as going'
         db.session.commit()
@@ -477,7 +489,72 @@ def rsvp_events():
         return redirect(url_for('main.index'))
 
 
-            
+def get_favorites(user_id):
+    # First verify the user exists
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found. Please login again.', 'error')
+        return redirect(url_for('main.login'))
+        
+    # Debug logging
+    current_app.logger.info(f"Fetching favorites for user {user.username} (ID: {user.id})")
+    
+    # Get user's favorite events
+    user_events = UserEvent.query.filter_by(user_id=user_id).all()
+
+    events = []
+    for ue in user_events:
+        try:
+            if ue.event:  # Check if the event exists
+                events.append(ue.event)
+                current_app.logger.info(f"Added event to list: {ue.event.name} (ID: {ue.event.event_id})")
+            else:
+                current_app.logger.warning(f"Found orphaned UserEvent record (ID: {ue.id})")
+                # Clean up orphaned user_event entries
+                db.session.delete(ue)
+        except Exception as event_error:
+            current_app.logger.error(f"Error processing event: {str(event_error)}")
+            continue
+    
+    return [event.id for event in events if event is not None]
+
+def get_rsvps(user_id):
+    
+    # First verify the user exists
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found. Please login again.', 'error')
+        return redirect(url_for('main.login'))
+    
+     # Get RSVP'd events
+    rsvp_links = UserEvent.query.filter_by(user_id=user.id, rsvp_status='going').all()
+    rsvps = [link.event for link in rsvp_links if link.event]
+
+    return [rsvp.id for rsvp in rsvps if rsvp is not None] 
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

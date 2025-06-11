@@ -55,17 +55,17 @@
                         <strong>Price:</strong> {{ event.price_range }}
                         {% endif %}
                     </p>
-                    <a href="{{ url_for('main.event_details', event_id=event.event_id) }}" class="btn btn-primary">View Details</a>
+                    <a href="{{ url_for('main.event_details', event_id=event.id) }}" class="btn btn-primary">View Details</a>
                     {% if session.get('username') %}
-                    <button class="btn rsvp-btn {{ 'btn-primary' if event.event_id in rsvp else 'btn-outline-primary' }}" data-event-id="{{ event.event_id }}">
-                        {% if event.event_id in rsvp %}
+                    <button class="btn rsvp-btn {{ 'btn-primary' if event.id in rsvps else 'btn-outline-primary' }}" data-event-id="{{ event.id }}">
+                        {% if event.id in rsvps %}
                             <i class="fas fa-check-square"></i> I'm going!
                         {% else %}
                             <i class="far fa-square"></i> RSVP
                         {% endif %}
                     </button>
-                    <button class="btn favorite-btn {{ 'btn-primary' if event.event_id in favorites else 'btn-outline-primary' }}" data-event-id="{{ event.event_id }}">
-                        {% if event.event_id in favorites %}
+                    <button class="btn favorite-btn {{ 'btn-primary' if event.id in favorites else 'btn-outline-primary' }}" data-event-id="{{ event.id }}">
+                        {% if event.id in favorites %}
                             <i class="fas fa-heart"></i> Favorited
                         {% else %}
                             <i class="far fa-heart"></i> Favorite
@@ -82,5 +82,6 @@
 {% if session.get('username') %}
 <script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
 <script src="{{ url_for('static', filename='js/rsvp.js') }}"></script>
+<script src="{{ url_for('static', filename='js/cities.js') }}"></script>
 {% endif %}
 {% endblock %}

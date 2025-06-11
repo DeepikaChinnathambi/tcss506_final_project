@@ -38,8 +38,8 @@
                     {% endif %}
 
                     <div class="mt-3 d-flex justify-content-between">
-                        <a href="{{ url_for('main.event_details', event_id=event.event_id) }}" class="btn btn-primary">View Event</a>
-                        <button class="btn btn-outline-danger un-rsvp-btn" data-event-id="{{ event.event_id }}">
+                        <a href="{{ url_for('main.event_details', event_id=event.id) }}" class="btn btn-primary">View Event</a>
+                        <button class="btn btn-outline-danger remove-rsvp" data-event-id="{{ event.id }}">
                             <i class="fas fa-check-square text-success"></i> I'm going!
                         </button>
                     </div>

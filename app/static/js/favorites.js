@@ -1,4 +1,4 @@
-document.querySelectorAll('.favorite-btn').forEach(button => {
+document.querySelectorAll('.favorite-btn, .remove-favorite-btn').forEach(button => {
   button.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     const eventId = btn.dataset.eventId;
@@ -14,9 +14,9 @@ document.querySelectorAll('.favorite-btn').forEach(button => {
       if (response.ok) {
         const isFavorited = data.favorited;
 
+        icon.classList.toggle('trash', !isFavorited);
         icon.classList.toggle('fas', isFavorited);
         icon.classList.toggle('far', !isFavorited);
-        icon.classList.toggle('text-danger', isFavorited);
 
         btn.classList.toggle('btn-primary', isFavorited);
         btn.classList.toggle('btn-outline-primary', !isFavorited);

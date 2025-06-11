@@ -18,7 +18,6 @@
         </div>
         <div class="col-md-3">
             <label for="city" class="form-label text-white">City</label>
-            <!-- <script src="https://maps.googleapis.com/maps/api/js?key=your_api_key&libraries=places"></script> -->
             <input type="text" class="form-control" id="city" name="city" placeholder="Seattle">
         </div>
         <div class="col-md-2">
@@ -81,4 +80,6 @@
     <h4>Contact Us</h4>
     <p>Liam Wilkenson | Deepika Chinnathambi | Ainsley Yoshizumi </p>
 </div>
+
+<script src="{{ url_for('static', filename='js/cities.js') }}"></script>
 {% endblock %}
