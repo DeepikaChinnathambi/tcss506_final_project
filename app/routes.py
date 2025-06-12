@@ -285,7 +285,7 @@ def search_events():
 def event_details(event_id):
     try:
         # First try to get from database
-        event = Event.query.filter_by(event_id=event_id).first()
+        event = Event.query.filter_by(id=event_id).first()
         
         # If not in database, fetch from API and save
         if not event:
