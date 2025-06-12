@@ -294,8 +294,8 @@ def event_details(event_id):
         
         try:
             user = User.query.filter_by(username=session.get('username')).first()
-            favorites = [event.event_id for event in user.favorites if event is not None]
-            rsvps = [event.event_id for event in user.rsvps if event is not None]
+            favorites = [event.id for event in user.favorites if event is not None]
+            rsvps = [event.id for event in user.rsvps if event is not None]
         except Exception as e:
             favorites = []
             rsvps = []
