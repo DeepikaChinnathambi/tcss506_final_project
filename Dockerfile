@@ -18,7 +18,11 @@ COPY . /app
 # Expose the port
 EXPOSE 5000
 
-# Run the app via run.py
-ENV FLASK_APP=app
+# Run the app via app
+ENV FLASK_APP=run
+
+# USE THIS WHEN IN DEVELOPMENT MODE
 CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
 
+# UNCOMMENT THIS WHEN RUNNING IN PRODUCTION MODE
+# CMD ["flask", "run", "--host=0.0.0.0", "--port=5000", "--no-debugger", "--no-reload"]
