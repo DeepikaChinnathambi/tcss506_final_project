@@ -41,45 +41,74 @@
         <div class="mb-3">
             <label for="confirm_password" class="form-label">Confirm Password</label>
             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+            <div id="matchMessage" class="form-text"></div>
         </div>
 
+        <!-- Show Password Toggle -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="showPasswordToggle">
+            <label class="form-check-label" for="showPasswordToggle">
+                Show Password
+            </label>
+        </div>
         <input type="submit" class="btn btn-primary" value="Register">
     </form>
 </div>
 
 <script>
-document.getElementById("password").addEventListener("input", function() {
-    const pwd = this.value;
+document.addEventListener("DOMContentLoaded", function () {
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirm_password");
+    const matchMessage = document.getElementById("matchMessage");
+    const toggle = document.getElementById("showPasswordToggle");
 
-    // Validation checks
-    const length = pwd.length >= 8;
-    const lower = /[a-z]/.test(pwd);
-    const upper = /[A-Z]/.test(pwd);
-    const number = /[0-9]/.test(pwd);
-    const special = /[!@#$%^&*()\-\_\+=<>?/.,:;{}\[\]]/.test(pwd);
+    // Password strength validation
+    password.addEventListener("input", function () {
+        const pwd = this.value;
 
-    // Update styles
-    document.getElementById("length").className = length ? "text-success" : "text-danger";
-    document.getElementById("lower").className = lower ? "text-success" : "text-danger";
-    document.getElementById("upper").className = upper ? "text-success" : "text-danger";
-    document.getElementById("number").className = number ? "text-success" : "text-danger";
-    document.getElementById("special").className = special ? "text-success" : "text-danger";
-});
+        const length = pwd.length >= 8;
+        const lower = /[a-z]/.test(pwd);
+        const upper = /[A-Z]/.test(pwd);
+        const number = /[0-9]/.test(pwd);
+        const special = /[!@#$%^&*()\-\_\+=<>?/.,:;{}\[\]]/.test(pwd);
 
-document.getElementById("confirm_password").addEventListener("input", function() {
-    const pwd = document.getElementById("password").value;
-    const confirmPwd = this.value;
-    const msg = document.getElementById("matchMessage");
+        document.getElementById("length").className = length ? "text-success" : "text-danger";
+        document.getElementById("lower").className = lower ? "text-success" : "text-danger";
+        document.getElementById("upper").className = upper ? "text-success" : "text-danger";
+        document.getElementById("number").className = number ? "text-success" : "text-danger";
+        document.getElementById("special").className = special ? "text-success" : "text-danger";
 
-    if (confirmPwd === "") {
-        msg.textContent = "";
-    } else if (pwd === confirmPwd) {
-        msg.textContent = "Passwords match";
-        msg.className = "form-text text-success";
-    } else {
-        msg.textContent = "Passwords do not match";
-        msg.className = "form-text text-danger";
+        checkMatch(); // also check if confirmation still matches
+    });
+
+    // Real-time match check
+    confirmPassword.addEventListener("input", checkMatch);
+
+    function checkMatch() {
+        const pwd = password.value;
+        const confirmPwd = confirmPassword.value;
+
+        if (confirmPwd === "") {
+            matchMessage.textContent = "";
+            matchMessage.className = "form-text";
+        } else if (pwd === confirmPwd) {
+            matchMessage.textContent = "✅ Passwords match";
+            matchMessage.className = "form-text text-success";
+        } else {
+            matchMessage.textContent = "❌ Passwords do not match";
+            matchMessage.className = "form-text text-danger";
+        }
+    }
+
+    // Show/Hide password toggle
+    if (toggle) {
+        toggle.addEventListener("change", function () {
+            const type = this.checked ? "text" : "password";
+            password.type = type;
+            confirmPassword.type = type;
+        });
     }
 });
 </script>
+
 {% endblock %}

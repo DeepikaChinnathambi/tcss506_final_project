@@ -10,6 +10,8 @@
 
     <!-- Bootswatch Solar Theme -->
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/solar/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 
     <style>
         body {
@@ -77,6 +79,30 @@
         .carousel.carousel-fade .carousel-item {
             transition: opacity 3s ease-in-out;
         }
+        .autocomplete-suggestions {
+        position: absolute;
+        background-color: rgba(33, 37, 41, 0.95); /* dark gray background */
+        border: 1px solid #495057;               /* Bootstrap dark border */
+        border-radius: 5px;
+        max-height: 180px;
+        overflow-y: auto;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        z-index: 1050;
+        color: #f8f9fa; /* light text */
+        font-size: 0.9rem;
+        }
+
+        .autocomplete-suggestion {
+        padding: 8px 12px;
+        cursor: pointer;
+        }
+
+        .autocomplete-suggestion:hover {
+        background-color: #0d6efd; /* Bootstrap primary blue */
+        color: white;
+        }
+
+
     </style>
 </head>
 <body>
@@ -84,7 +110,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
-                <img src="{{ url_for('static', filename='images/eventhub_logo.png') }}" alt="EventHub Logo" height="50">
+                <img src="{{ url_for('static', filename='images/home_logo.jpg') }}" alt="EventHub Logo" height="50">
                 EventHub
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -92,24 +118,28 @@
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
-                    {% if session.get('username') %}                    
+                    {% if session.get('username') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.profile') }}">
-                            <img src="{{ url_for('static', filename=session.get('avatar_url', 'images/default_avatar.png')) }}" 
-                                 width="30" height="30" 
-                                 class="rounded-circle me-1" 
+                            <img src="{{ url_for('static', filename=session.get('avatar_url', 'images/avatar_icon_new.png')) }}"
+                                 width="30" height="30"
+                                 class="rounded-circle me-1"
                                  style="object-fit: cover;"
-                                 alt="{{ session['username'] }}'s avatar"> 
-                            {{ session['username'] }}
+                                 alt="{{ session['username'] }}'s avatar"
+                                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatar_icon_new.png') }}';"
+                                 >
+                        {{ session['username'] }}
                         </a>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.favorite_events') }}">My Favorites</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.rsvp_events') }}">My RSVPs</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a></li>
                     {% else %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.login') }}">Login</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.register') }}">Register</a></li>
                     {% endif %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.about') }}">About</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('main.help') }}">Help</a></li>
                 </ul>
             </div>
         </div>

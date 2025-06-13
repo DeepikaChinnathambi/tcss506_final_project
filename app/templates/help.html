@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Help | EventHub{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 800px;">
+    <h2 class="mb-4">Help & FAQ</h2>
+
+    <h4>🔰 Getting Started</h4>
+    <ul>
+        <li><strong>Create an Account:</strong> Go to the <a href="{{ url_for('main.register') }}">Register</a> page and fill in your username, email, and password.</li>
+        <li><strong>Password Requirements:</strong> Your password must include:
+            <ul>
+                <li>✔ At least 8 characters</li>
+                <li>✔ One lowercase letter</li>
+                <li>✔ One uppercase letter</li>
+                <li>✔ One number</li>
+                <li>✔ One special character (!@#$%^&*)</li>
+            </ul>
+        </li>
+        <li><strong>Confirm Password:</strong> Re-enter the same password to confirm it.</li>
+    </ul>
+
+    <h4>🔐 Login Help</h4>
+    <ul>
+        <li><strong>Login:</strong> Go to the <a href="{{ url_for('main.login') }}">Login</a> page and enter your registered <em>username or email</em> and password.</li>
+        <li><strong>Forgot Password?</strong> Click the <a href="{{ url_for('main.forgot_password') }}">“Forgot your password?”</a> link on the login page.</li>
+        <li><strong>Invalid Login?</strong> Make sure:
+            <ul>
+                <li>Your username or email is typed correctly.</li>
+                <li>Your password is correct and case-sensitive.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h4>🔁 Resetting Your Password</h4>
+    <ul>
+        <li><strong>Start the process:</strong> Click <a href="{{ url_for('main.forgot_password') }}">“Forgot your password?”</a> on the login page.</li>
+        <li><strong>Enter your email:</strong> Use the same email you used while registering.</li>
+        <li><strong>Check your inbox:</strong> You will receive a reset link via email. (Check spam if not found.)</li>
+        <li><strong>Reset password:</strong> Use the link to go to the reset page and enter your new password.</li>
+        <li><strong>Password must meet the rules:</strong>
+            <ul>
+                <li>✔ At least 8 characters</li>
+                <li>✔ One lowercase letter</li>
+                <li>✔ One uppercase letter</li>
+                <li>✔ One number</li>
+                <li>✔ One special character (!@#$%^&*)</li>
+            </ul>
+        </li>
+        <li><strong>Done:</strong> You can now <a href="{{ url_for('main.login') }}">log in</a> with your new password.</li>
+    </ul>
+    <p><strong>Note:</strong> If your reset link has expired or is invalid, repeat the "Forgot password" process to receive a new one.</p>
+
+    <h4>🔎 Searching for Events</h4>
+    <ul>
+        <li><strong>Search All Events:</strong> Use the search bar on the homepage to find events locally.</li>
+        <li><strong>Filter by Keyword:</strong> Enter keywords such as event names or themes.</li>
+        <li><strong>Filter by City or State:</strong> Use the dropdowns or input fields to narrow results by location.</li>
+        <li><strong>Filter by Start Date:</strong> Choose a start date to view events beginning on or after the selected date.</li>
+        <li><strong>View Details:</strong> Click on an event card to see full details, RSVP, or add it to your favorites.</li>
+    </ul>
+
+    <h4>❤️ Favorites</h4>
+    <ul>
+        <li><strong>Save events:</strong> Click the "Favorite" button on an event page to save it.</li>
+        <li><strong>View favorites:</strong> Go to <a href="{{ url_for('main.favorite_events') }}">My Favorites</a> from the navigation menu.</li>
+        <li><strong>Remove favorites:</strong> Click "Remove" on the Favorites page to unfavorite any event.</li>
+    </ul>
+
+    <h4>📅 RSVPs</h4>
+    <ul>
+        <li><strong>RSVP to events:</strong> Click the "RSVP" button on the event page.</li>
+        <li><strong>View your RSVPs:</strong> Visit <a href="{{ url_for('main.rsvp_events') }}">My RSVPs</a> from the top navigation.</li>
+        <li><strong>Cancel RSVP:</strong> Use the cancel option on the RSVP page if your plans change.</li>
+    </ul>
+
+    <h4>👤 Profile</h4>
+    <ul>
+        <li><strong>Access your profile:</strong> Click your username or go to <a href="{{ url_for('main.profile') }}">Profile</a>.</li>
+        <li><strong>Update profile picture:</strong> Use the "Change Picture" option to upload a new one.</li>
+        <li><strong>Update Email or Password:</strong> You can update your email address or password using the provided form fields. Leave a field blank if you don’t wish to change it.</li>
+        <li><strong>Click "Update Profile" to save any changes you've made to your profile.</strong></li>
+    </ul>
+
+    <h4>📬 Still Need Help?</h4>
+    <p>Email us at <a href="mailto:hubevent123@gmail.com">hubevent123@gmail.com</a> and we’ll get back to you soon.</p>
+</div>
+{% endblock %}

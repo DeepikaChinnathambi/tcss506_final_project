@@ -40,9 +40,20 @@
             
             <div class="mb-4">
                 {% if session.get('username') %}
-                <button class="btn btn-outline-primary favorite-btn me-2" data-event-id="{{ event.event_id }}">
-                    <i class="fas fa-heart"></i> Add to Favorites
-                </button>
+                    <button class="btn rsvp-btn {{ 'btn-primary' if event.id in rsvps else 'btn-outline-primary' }}" data-event-id="{{ event.id }}">
+                        {% if event.id in rsvps %}
+                            <i class="fas fa-check-square"></i> I'm going!
+                        {% else %}
+                            <i class="far fa-square"></i> RSVP
+                        {% endif %}
+                    </button>
+                    <button class="btn favorite-btn {{ 'btn-primary' if event.id in favorites else 'btn-outline-primary' }}" data-event-id="{{ event.id }}">
+                        {% if event.id in favorites %}
+                            <i class="fas fa-heart"></i> Favorited
+                        {% else %}
+                            <i class="far fa-heart"></i> Favorite
+                        {% endif %}
+                    </button>
                 {% endif %}
                 
                 {% if event.ticket_url %}
@@ -56,29 +67,7 @@
 </div>
 
 {% if session.get('username') %}
-<script>
-document.querySelector('.favorite-btn').addEventListener('click', async (e) => {
-    const eventId = e.target.dataset.eventId;
-    try {
-        const response = await fetch(`/events/${eventId}/favorite`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        const data = await response.json();
-        if (response.ok) {
-            alert(data.message);
-            // Toggle button appearance
-            e.target.classList.toggle('btn-outline-primary');
-            e.target.classList.toggle('btn-primary');
-        } else {
-            alert(data.error);
-        }
-    } catch (error) {
-        alert('Error updating favorites');
-    }
-});
-</script>
+<script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rsvp.js') }}"></script>
 {% endif %}
 {% endblock %} 
