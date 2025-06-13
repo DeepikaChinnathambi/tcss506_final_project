@@ -422,7 +422,7 @@ def favorite_events():
         
         # Get user's favorite events
         user_events = UserEvent.query.filter_by(user_id=session['user_id']).all()
-        events = Event.query.filter(Event.event_id.in_([ue.id for ue in user_events])).all()
+        #events = Event.query.filter(Event.event_id.in_([ue.id for ue in user_events])).all()
         # events = [ue for ue in user_events]
         current_app.logger.info(f"Found {len(user_events)} favorite events in UserEvent table")
         

@@ -71,9 +71,17 @@ class TicketmasterAPI:
             event.description = event_data.get('description', '')
             
             dates = event_data.get('dates', {}).get('start', {})
-            if dates:
-                event.start_date = datetime.fromisoformat(dates.get('dateTime', '').replace('Z', '+00:00'))
-            
+            datetime_str = dates.get('dateTime')
+
+            if datetime_str:
+                try:
+                    event.start_date = datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+                except ValueError:
+                    current_app.logger.warning(f"Invalid dateTime format: {datetime_str} for event {event_id}")
+                    event.start_date = None  # or skip assigning
+            else:
+                event.start_date = None
+
             if '_embedded' in event_data and 'venues' in event_data['_embedded']:
                 venue = event_data['_embedded']['venues'][0]
                 event.venue_name = venue.get('name', '')
